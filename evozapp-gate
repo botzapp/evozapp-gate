@@ -1,28 +1,18 @@
-const express = require("express");
-const app = express();
+const express = require('express')
+const app = express()
 
-app.get("/traefik/n8n-gate", (req, res) => {
-  const secFetchDest = (req.headers["sec-fetch-dest"] || "").toLowerCase();
-  const referer = req.headers["referer"] || "";
-  const origin = req.headers["origin"] || "";
+app.get('/health', (req, res) => {
+  res.status(200).json({ ok: true })
+})
 
-  const allowedParents = [
-    "https://app.evozapp.com",
-    "https://preview--app-evozapp.lovable.app"
-  ];
+app.get('/auth', (req, res) => {
+  const origin = req.headers.origin || ''
+  if (origin.includes('lovable.app')) {
+    return res.status(200).json({ allowed: true })
+  }
+  return res.status(403).json({ allowed: false })
+})
 
-  const isIframe = secFetchDest === "iframe";
-
-  const cameFromAllowed =
-    allowedParents.some((d) => referer.startsWith(d)) ||
-    allowedParents.includes(origin);
-
-  if (!isIframe) return res.sendStatus(403);
-  if (!cameFromAllowed) return res.sendStatus(403);
-
-  return res.sendStatus(200);
-});
-
-app.get("/health", (req, res) => res.json({ ok: true }));
-
-app.listen(3000, () => console.log("Gate running on :3000"));
+app.listen(3000, () => {
+  console.log('Gate running on 3000')
+})
